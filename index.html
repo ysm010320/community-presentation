@@ -376,7 +376,7 @@
                             <div class="time-tag">${s.comment_time || '&nbsp;'}</div>
                         </div>
                     </div>
-                    ${s.error_msg ? `<div class="error-tag">${s.error_msg}</div>` : ''}
+                    ${s.error_msg ? `<div class="error-tag">(변경필요) 사유: ${s.error_msg}</div>` : (s.company === '변경 필요' ? `<div class="error-tag">(변경필요)</div>` : '')}
                 </div>
             `).join('')}</div>`;
         }
