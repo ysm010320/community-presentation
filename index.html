@@ -126,6 +126,7 @@
             width: 100%;
             border-collapse: collapse;
             min-width: 1200px;
+            table-layout: fixed;
         }
 
         th {
@@ -141,7 +142,12 @@
             padding: 1.25rem 0.5rem;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: top;
+            word-break: break-all;
         }
+
+        th:nth-child(1), td:nth-child(1) { width: 80px; }
+        th:nth-child(2), td:nth-child(2) { width: calc(50% - 40px); }
+        th:nth-child(3), td:nth-child(3) { width: calc(50% - 40px); }
 
         td:first-child {
             width: 80px;
