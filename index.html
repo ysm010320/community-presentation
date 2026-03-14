@@ -196,6 +196,70 @@
             align-items: center;
             z-index: 1000;
         }
+        @media (max-width: 768px) {
+            body { padding: 1rem 0.5rem; }
+            h1 { font-size: 1.8rem; }
+            .dashboard-card { padding: 1rem; }
+            
+            /* Stats grid remains 2-column per user request */
+            .stats-grid { gap: 0.75rem; }
+            .stats-column h3 { font-size: 0.8rem; margin-bottom: 0.4rem; }
+            .company-list { font-size: 0.75rem; max-height: 100px; }
+
+            /* Table to Card conversion */
+            table, thead, tbody, th, td, tr { display: block; width: 100%; min-width: 0; }
+            thead { display: none; }
+            
+            tr { 
+                margin-bottom: 1.5rem; 
+                background: white; 
+                border-radius: 12px; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+                border: 1px solid var(--border);
+            }
+            
+            td { padding: 0.75rem; border: none; }
+            
+            td:first-child { 
+                background: var(--primary); 
+                color: white; 
+                width: 100%; 
+                font-size: 1.1rem;
+                padding: 0.6rem; 
+                border-radius: 11px 11px 0 0;
+                border-right: none;
+            }
+
+            /* Labels for mobile context */
+            td:nth-child(2)::before {
+                content: "🏢 공공기관";
+                display: block;
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                padding-bottom: 0.2rem;
+            }
+            
+            td:nth-child(3)::before {
+                content: "💰 상장기업";
+                display: block;
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 0.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                padding-bottom: 0.2rem;
+            }
+
+            .slot { gap: 0.4rem; }
+            .input-group { flex-direction: column; border-radius: 6px; }
+            select { border-right: none; border-bottom: 1px solid var(--border); padding: 0.5rem; font-size: 0.85rem; flex: none; width: 100%; }
+            input { padding: 0.5rem; font-size: 0.85rem; flex: none; width: 100%; }
+            .time-tag { display: none; }
+            .error-tag { margin-left: 20px; font-size: 0.7rem; }
+        }
     </style>
 </head>
 <body>
