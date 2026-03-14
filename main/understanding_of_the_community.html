@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지역사회의 이해 발표 일정 (실시간 협업)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --primary: #2563eb;
+            --error: #ef4444;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2.5rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            text-align: left;
+            margin-bottom: 3.5rem;
+            padding-left: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(to right, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            font-weight: 500;
+        }
+
+        .dashboard-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1250px; /* Increased slightly to ensure full visibility of all elements */
+        }
+
+        th {
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            padding: 1rem 0;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        td {
+            padding: 1.25rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        td:first-child {
+            width: 70px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+            border-right: 1px solid #f1f5f9;
+        }
+
+        td:nth-child(2), td:nth-child(3) {
+            width: 48%;
+            padding: 1rem;
+        }
+
+        .slot-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .slot-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slot {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+        }
+
+        .slot-number {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            width: 16px;
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex: 1;
+            gap: 0.5rem;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-group:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        select {
+            flex: 7;
+            min-width: 0;
+            border: none;
+            padding: 0.6rem 2rem 0.6rem 0.8rem;
+            outline: none;
+            color: var(--text-main);
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.6rem center;
+            background-size: 1.1em;
+            text-overflow: ellipsis;
+        }
+
+        input[type="text"] {
+            flex: 3;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 0.6rem 0.5rem;
+            outline: none;
+        }
+
+        .time-tag {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            padding-right: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 85px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .error-tag {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--error);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 4px;
+            margin-left: 28px;
+            align-self: flex-start;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading-overlay">실시간 데이터를 불러오는 중...</div>
+
+    <div class="container">
+        <header>
+            <h1>지역사회의 이해 발표 일정</h1>
+        </header>
+
+        <main class="dashboard-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>날짜</th>
+                        <th>공공기관 (Public)</th>
+                        <th>상장기업 (Private)</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://tduvcakgpburarevgubr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdXZjYWtncGJ1cmFyZXZndWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODk0NDIsImV4cCI6MjA4ODk2NTQ0Mn0.tR0CwvI-JMCT7n947fUhk7kc7ghBulNVGmCed_LHmfM";
+        
+        const loadingEl = document.getElementById('loading');
+        function showStatus(msg, isError = false) {
+            loadingEl.style.display = 'flex';
+            loadingEl.innerText = msg;
+            if (isError) {
+                loadingEl.style.color = '#ef4444';
+                loadingEl.style.background = 'rgba(255,255,255,0.95)';
+                loadingEl.style.fontSize = '1.2rem';
+                loadingEl.style.padding = '2rem';
+                loadingEl.style.textAlign = 'center';
+            } else {
+                loadingEl.style.color = '';
+                loadingEl.style.background = '';
+            }
+        }
+
+        // Catch any global script errors
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            showStatus(`차트 오류 발생:\n${msg}\n(Line: ${lineNo})`, true);
+            return false;
+        };
+
+        let supabaseClient;
+        try {
+            if (typeof supabase === 'undefined') {
+                throw new Error("Supabase 라이브러리가 로드되지 않았습니다. 인터넷 연결을 확인하세요.");
+            }
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch (e) {
+            showStatus(e.message, true);
+        }
+
+        const publicCompanies = [
+            "한국전자통신연구원", "한국화학연구원", "한국에너지기술연구원", "한국지질자원연구원", "한국생명공학연구원", "한국원자력연구원", "한국표준과학연구원", "한국기계연구원", "한국기초과학지원연구원 부설 국가핵융합연구소", "한국기초과학지원연구원", "한국항공우주연구원", "한국과학기술정보연구원", "한국화학연구원 부설 안전성평가연구소", "한국해양과학기술원 부설 선박해양플랜트 연구소", "한국한의학연구원", "한국천문연구원", "한국전자통신연구원 부설 국가보안기술연구소", "기초과학연구원 부설 국가수리과학연구소", "기초과학연구원", "한국과학기술원 부설 나노종합기술원", "한국연구재단", "한국원자력안전기술원", "정보통신산업진흥원 부설 정보통신기술진흥센터", "한국원자력통제기술원", "한국산업기술시험원 중부지역본부", "국방과학연구소", "배재대학교", "과학기술연합대학원대학교(UST)", "충남대학교", "한국과학기술원", "대덕대학교", "한남대학교", "한밭대학교", "(재)다차원스마트 IT융합시스템연구단", "대전교육과학연구원", "한국전력공사 전력연구원", "K-water 연구원", "교통안전공단 중부지역본부", "안전보건공단 산업안전보건연구원 산업화학연구실(화학물질독성연구실)", "한국건설생활환경시험연구원 대전충남지원", "한국토지주택공사 토지주택연구원", "한국수력원자력㈜ 중앙연구원", "국제지식재산연수원", "금강유역환경청", "국립중앙과학관", "대전인재개발원", "대전교육정보원", "대전지방기상청", "대전충남지방중소기업청", "대전세관", "정부통합전산센터", "화학물질안전원", "대전광역시 시설관리공단 무지개복지센터", "한국전력기술㈜ 원자로설계개발단", "연구개발특구진흥재단", "(재)대전경제통상진흥원", "대전직업능력개발원", "한국원자력연료㈜", "안전보건공단 대전지역본부", "(재)대전테크노파크", "한국조폐공사", "한국원자력환경공단", "대전시민천문대", "중소기업기술정보진흥원", "대전충남KOTRA지원단", "대전신용보증재단 북부지점", "중소기업진흥공단 청년사관학교", "국가과학기술인력개발원 교육센터", "창업진흥원", "한국서부발전", "대전창조경제혁신센터", "한국수자원공사", "정보통신기획평가원", "한국철도공사", "코레일테크㈜", "한국철도시설공단", "한국산림복지진흥원", "한국가스기술공사", "소상공인진흥공단", "신용보증재단중앙회", "목원대학교 산학협력단", "(사)한국방사성폐기물학회", "대덕이노폴리스 벤처협회", "대전대학교 산학협력단", "대덕산업단지관리공단", "한국여성원자력전문인협회", "대한산업보건협회 대전산업보건센터", "(사)출연(연)연구발전협의회 총연합회", "대한산업안전협회 대전지역본부", "(사)대덕클럽", "한국단미사료협회", "(재)한국원자력협력재단", "(재)장애인기업종합지원센터", "대덕연구개발특구기관장협의회", "(재)중앙문화재연구원 대전사무소", "대전지역사업평가단", "대전녹색환경지원센터", "(사)대한여성과학기술인회", "한국표준협회 대전세종충남지역본부", "창업진흥원 창업보육센터", "대덕원자력포럼", "한국산업기술진흥협회", "한국기술사업화진흥협회", "한국여성경제인협회", "대전문화산업진흥협회", "한국과학기술단체총연합회 (과총)", "(재)기가코리아사업단", "나노융합산업연구조합", "바이오메스연구단", "(사)과학기술연우연합회"
+        ];
+
+        const privateCompanies = [
+            "계룡건설산업", "골프존", "나노신소재", "나노팀", "나노엔텍", "네오팜", "노타", "뉴로스", "대산F&B", "동양에스텍", "디엔에프", "라이온켐텍", "라이트론", "레인보우로보틱스", "리가켐바이오", "리메드", "민테크", "바이오니아", "비비씨", "비플라이소프트", "빛과전자", "수젠텍", "시스웍", "신테카바이오", "쎄트렉아이", "아이디스", "아이디스홀딩스", "아이비전웍스", "아이쓰리시스템", "아이빔테크놀로지", "안지오랩", "알루코", "알테오젠", "에르코스", "에이치엔에스하이텍", "엔지켐생명과학", "오름테라퓨틱", "와이바이오로직스", "우성", "원텍", "위드텍", "위월드", "이비테크", "인텍플러스", "인투셀", "잼코", "제노텍", "제일사료", "젬백스", "지노믹트리", "진시스템", "컨텍", "크로우", "큐로셀", "토모큐브", "파이버프로", "펩트론", "플라즈맵", "프리시젼바이오", "한독크린텍", "한빛레이저", "한온시스템", "한켐", "HLB제넥스", "HLB파나진", "KT&G", "KTcs", "LX세미콘"
+        ];
+
+        let presentationData = [];
+
+        async function fetchData() {
+            try {
+                showStatus("데이터 로드 중...");
+                const { data, error } = await supabaseClient
+                    .from('presentations')
+                    .select('*')
+                    .order('date', { ascending: true })
+                    .order('category', { ascending: false })
+                    .order('slot_index', { ascending: true });
+                
+                if (error) {
+                    showStatus("데이터 로드 실패: " + error.message, true);
+                    return;
+                }
+                
+                if (!data || data.length === 0) {
+                    showStatus("데이터가 비어있습니다. DB 마이그레이션을 확인하세요.", true);
+                    return;
+                }
+                
+                // Custom sort for MM/DD strings
+                const sortedData = data.sort((a, b) => {
+                    const [am, ad] = a.date.split('/').map(Number);
+                    const [bm, bd] = b.date.split('/').map(Number);
+                    
+                    if (am !== bm) return am - bm;
+                    if (ad !== bd) return ad - bd;
+                    
+                    // Same date, sort by category (Public > Listed)
+                    if (a.category !== b.category) {
+                        return a.category === '공공' ? -1 : 1;
+                    }
+                    
+                    return (a.slot_index || 0) - (b.slot_index || 0);
+                });
+
+                presentationData = sortedData;
+                renderDashboard();
+                showStatus("데이터 로드 완료");
+                loadingEl.style.display = 'none';
+            } catch (e) {
+                showStatus("네트워크 또는 코드 에러: " + e.message, true);
+            }
+        }
+
+        function renderDashboard() {
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+
+            const groupedByDate = {};
+            const uniqueDates = [];
+            
+            presentationData.forEach(p => {
+                if (!groupedByDate[p.date]) {
+                    groupedByDate[p.date] = { public: [], private: [] };
+                    uniqueDates.push(p.date);
+                }
+                if (p.category === '공공') groupedByDate[p.date].public.push(p);
+                else groupedByDate[p.date].private.push(p);
+            });
+
+            uniqueDates.forEach(date => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${date}</td>
+                    <td>${createSlotsHtml(groupedByDate[date].public)}</td>
+                    <td>${createSlotsHtml(groupedByDate[date].private)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            refreshDropdowns();
+        }
+
+        function createSlotsHtml(slots) {
+            return `
+                <div class="slot-container">
+                    ${slots.map(s => `
+                        <div class="slot-wrapper">
+                            <div class="slot">
+                                <span class="slot-number">${s.slot_index}</span>
+                                <div class="input-group">
+                                    <select onchange="updatePresentation('${s.id}', this.value, null)">
+                                        ${generateOptions(s.company, s.category)}
+                                    </select>
+                                    <input type="text" value="${s.name || ''}" 
+                                           onblur="updatePresentation('${s.id}', null, this.value)"
+                                           placeholder="이름 입력">
+                                    <div class="time-tag">${s.comment_time || '&nbsp;'}</div>
+                                </div>
+                            </div>
+                            ${s.error_msg ? `<span class="error-tag">${s.error_msg}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function generateOptions(selected, category) {
+            let opts = `<option value="" ${!selected ? 'selected' : ''}>선택 안함</option>`;
+            if (selected === '변경 필요') {
+                opts += `<option value="변경 필요" selected>변경 필요</option>`;
+            }
+            
+            const targetList = category === '공공' ? publicCompanies : privateCompanies;
+
+            // 데이터베이스의 값이 선택된 리스트에 없는 경우, 임시로 옵션에 추가 (데이터 소실 방지)
+            if (selected && selected !== '변경 필요' && !targetList.includes(selected)) {
+                opts += `<option value="${selected}" selected>${selected}</option>`;
+            }
+
+            targetList.forEach(c => {
+                opts += `<option value="${c}" ${c === selected ? 'selected' : ''}>${c}</option>`;
+            });
+            return opts;
+        }
+
+        async function updatePresentation(id, company, name) {
+            const updates = {};
+            if (company !== null) updates.company = company;
+            if (name !== null) updates.name = name;
+
+            const { error } = await supabaseClient
+                .from('presentations')
+                .update(updates)
+                .eq('id', id);
+            
+            if (error) alert('업데이트 실패: ' + error.message);
+        }
+
+        function refreshDropdowns() {
+            const selects = document.querySelectorAll('select');
+            const selectedSet = new Set();
+            
+            // Collect all currently selected companies (excluding placeholder/error states)
+            selects.forEach(s => {
+                if (s.value && s.value !== '변경 필요' && s.value !== '선택 안함') {
+                    selectedSet.add(s.value);
+                }
+            });
+
+            selects.forEach(s => {
+                const current = s.value;
+                
+                // Style the select element itself based on its value
+                if (current === '변경 필요') {
+                    s.style.color = '#ef4444'; // Red for error
+                    s.style.fontWeight = '700';
+                } else if (!current || current === '선택 안함') {
+                    s.style.color = '#94a3b8'; // Muted for empty
+                    s.style.fontWeight = '400';
+                } else {
+                    s.style.color = '#1e293b'; // Explicit dark for selected
+                    s.style.fontWeight = '600';
+                }
+
+                Array.from(s.options).forEach(opt => {
+                    // Don't gray out metadata options
+                    if (!opt.value || opt.value === '변경 필요' || opt.value === '선택 안함') {
+                        if (opt.value === '변경 필요') opt.style.color = '#ef4444';
+                        return;
+                    }
+
+                    // Gray out and disable IF it's taken by SOMEONE ELSE
+                    if (selectedSet.has(opt.value) && opt.value !== current) {
+                        opt.style.textDecoration = 'line-through';
+                        opt.style.color = '#cbd5e1';
+                        opt.disabled = true;
+                    } else {
+                        opt.style.textDecoration = 'none';
+                        opt.style.color = '#1e293b';
+                        opt.disabled = false;
+                    }
+                });
+            });
+        }
+
+        // Subscribe to real-time changes
+        supabaseClient.channel('custom-all-channel')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'presentations' }, (payload) => {
+                fetchData(); // Simplest way to ensure consistency
+            })
+            .subscribe();
+
+        fetchData();
+    </script>
+</body>
+</html>
