@@ -1,0 +1,15 @@
+name: Supabase Keep Alive
+on:
+  schedule:
+    - cron: '0 0 */6 * *' # Every 6 days at midnight
+  workflow_dispatch: # Allows manual execution
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Heartbeat to Supabase
+        run: |
+          curl -X GET "https://tduvcakgpburarevgubr.supabase.co/rest/v1/presentations?select=id&limit=1" \
+          -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdXZjYWtncGJ1cmFyZXZndWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODk0NDIsImV4cCI6MjA4ODk2NTQ0Mn0.tR0CwvI-JMCT7n947fUhk7kc7ghBulNVGmCed_LHmfM" \
+          -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdXZjYWtncGJ1cmFyZXZndWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODk0NDIsImV4cCI6MjA4ODk2NTQ0Mn0.tR0CwvI-JMCT7n947fUhk7kc7ghBulNVGmCed_LHmfM"
