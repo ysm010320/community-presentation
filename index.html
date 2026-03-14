@@ -245,6 +245,111 @@
             align-items: center;
             z-index: 1000;
         }
+
+        /* Calendar Modal */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .calendar-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 360px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9) opacity(0); }
+            to { transform: scale(1) opacity(1); }
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+        }
+
+        .calendar-header select {
+            border: 1px solid var(--border);
+            padding: 0.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+            background: #f8fafc;
+            flex: 1;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 0.5rem 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .calendar-day.active {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-day.muted {
+            color: #cbd5e1;
+            pointer-events: none;
+        }
+
+        .date-cell {
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+
+        .date-cell:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .calendar-close {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            background: #e2e8f0;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
         @media (max-width: 768px) {
             body { padding: 1rem 0.5rem; }
             h1 { font-size: 1.8rem; }
@@ -344,13 +449,24 @@
                 <thead>
                     <tr>
                         <th>날짜</th>
-                        <th>공공기관 (Public)</th>
-                        <th>상장기업 (Private)</th>
+                        <th>공공기관 (PUBLIC)</th>
+                        <th>상장기업 (PRIVATE)</th>
                     </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
         </main>
+    </div>
+
+    <div id="calendarModal" class="modal">
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <select id="calYear"></select>
+                <select id="calMonth"></select>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <button class="calendar-close" onclick="closeCalendar()">닫기</button>
+        </div>
     </div>
 
     <script>
@@ -408,7 +524,7 @@
                 const tr = document.createElement('tr');
                 const weekText = weekMap[date] || "";
                 tr.innerHTML = `
-                    <td>
+                    <td class="date-cell" onclick="openCalendar('${date}')">
                         <div>${date}</div>
                         ${weekText ? `<div class="week-label">(${weekText})</div>` : ''}
                     </td>
@@ -473,7 +589,92 @@
         }
 
         supabaseClient.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'presentations' }, fetchData).subscribe();
+        // Calendar Logic
+        let currentEditingDate = null;
+        const calYear = document.getElementById('calYear');
+        const calMonth = document.getElementById('calMonth');
+        const calGrid = document.getElementById('calendarGrid');
+
+        function initCalendarSelects() {
+            const year = new Date().getFullYear();
+            for(let y = year - 1; y <= year + 2; y++) {
+                calYear.add(new Option(y + "년", y));
+            }
+            for(let m = 1; m <= 12; m++) {
+                calMonth.add(new Option(m + "월", m - 1));
+            }
+            calYear.onchange = calMonth.onchange = () => renderCalendarDays();
+        }
+
+        function openCalendar(dateStr) {
+            currentEditingDate = dateStr;
+            const [m, d] = dateStr.split('/').map(Number);
+            const now = new Date();
+            calYear.value = now.getFullYear();
+            calMonth.value = m - 1;
+            document.getElementById('calendarModal').style.display = 'flex';
+            renderCalendarDays();
+        }
+
+        function closeCalendar() {
+            document.getElementById('calendarModal').style.display = 'none';
+        }
+
+        function renderCalendarDays() {
+            calGrid.innerHTML = '';
+            const y = parseInt(calYear.value);
+            const m = parseInt(calMonth.value);
+            
+            const days = ['일','월','화','수','목','금','토'];
+            days.forEach(d => {
+                const el = document.createElement('div');
+                el.className = 'calendar-day-label';
+                el.innerText = d;
+                calGrid.appendChild(el);
+            });
+
+            const firstDay = new Date(y, m, 1).getDay();
+            const lastDate = new Date(y, m + 1, 0).getDate();
+
+            for(let i = 0; i < firstDay; i++) {
+                const el = document.createElement('div');
+                el.className = 'calendar-day muted';
+                calGrid.appendChild(el);
+            }
+
+            for(let d = 1; d <= lastDate; d++) {
+                const el = document.createElement('div');
+                el.className = 'calendar-day';
+                el.innerText = d;
+                el.onclick = () => updateDate(y, m, d);
+                calGrid.appendChild(el);
+            }
+        }
+
+        async function updateDate(y, m, d) {
+            const newDateStr = `${m + 1}/${d}`;
+            if (newDateStr === currentEditingDate) return closeCalendar();
+
+            document.getElementById('loading').style.display = 'flex';
+            const { error } = await supabaseClient
+                .from('presentations')
+                .update({ date: newDateStr })
+                .eq('date', currentEditingDate);
+
+            if (error) alert("날짜 변경 실패: " + error.message);
+            else {
+                // Update local data for immediate feedback if possible, or just re-fetch
+                await fetchData();
+            }
+            document.getElementById('loading').style.display = 'none';
+            closeCalendar();
+        }
+
+        initCalendarSelects();
         fetchData();
+        // subscribeRealtime(); // This line was not in the original, but was in the instruction's JS snippet.
+                               // Assuming it was meant to be added, but it's not defined.
+                               // Keeping it commented out or removed to avoid errors.
     </script>
 </body>
 </html>
